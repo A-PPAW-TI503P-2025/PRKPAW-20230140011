@@ -1,8 +1,8 @@
 const presensiRecords = [
   // Kita bisa mulai dengan data contoh
   {
-    userId: 456,
-    nama: 'User Karyawan',
+    userId: 123,
+    nama: '',
     checkIn: new Date('2025-10-14T08:05:00'),
     checkOut: new Date('2025-10-14T17:00:00')
   }
