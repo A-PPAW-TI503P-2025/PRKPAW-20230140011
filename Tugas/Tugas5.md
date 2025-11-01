@@ -5,7 +5,7 @@
 ![Tampilan Endpoint update jika format tanggal yang diisi tidak valid](<SS/SS Endpoint update jika format tanggal yang diisi tidak valid.png>) 
 
 ## Endpoint delete data
-![Tampilan Endpoint delete data](<SS/SS Endpoint delete data.png>)
+![Tampilan Endpoint delete data](<SS/SS Endpoint Delete Data.png>)
 
 ## Endpoint search berdasarkan nama
 ![Tampilan Endpoint search berdasarkan nama](<SS/SS Endpoint search berdasarkan nama.png>)
