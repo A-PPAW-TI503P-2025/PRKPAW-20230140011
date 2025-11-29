@@ -1,46 +1,63 @@
-const { Presensi } = require("../models");
+const { Presensi, User } = require("../models"); // Tambahkan User
 const { Op } = require("sequelize");
 
 exports.getDailyReport = async (req, res) => {
   try {
-    const { date, nama } = req.query;
+    // Ambil parameter dari frontend (sesuai ReportPage.js)
+    const { startDate, endDate, nama } = req.query;
 
-    // Validasi format tanggal
-    if (!date || isNaN(Date.parse(date))) {
-      return res.status(400).json({
-        message: "Format tanggal tidak valid. Gunakan format YYYY-MM-DD.",
-      });
+    // 1. Siapkan Filter untuk Tabel Presensi (Filter Waktu)
+    let whereClause = {};
+
+    if (startDate && endDate) {
+      // Jika ada Start dan End date
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      // Set end date ke akhir hari (23:59:59) agar data hari itu ikut terambil
+      end.setHours(23, 59, 59, 999);
+
+      whereClause.checkIn = {
+        [Op.between]: [start, end] // Gunakan Op.between
+      };
+    } else if (startDate) {
+       // Jika hanya ada Start date
+       const start = new Date(startDate);
+       whereClause.checkIn = {
+         [Op.gte]: start // Greater than or Equal
+       };
     }
 
-    // Tentukan rentang waktu (misal seluruh hari yang sama)
-    const startDate = new Date(date);
-    const endDate = new Date(date);
-    endDate.setDate(endDate.getDate() + 1);
-
-    let options = {
-      where: {
-        createdAt: {
-          [Op.gte]: startDate,
-          [Op.lt]: endDate,
-        },
-      },
-    };
-
-    // Jika ada filter nama
+    // 2. Siapkan Filter untuk Tabel User (Filter Nama)
+    let userWhereClause = {};
     if (nama) {
-      options.where.nama = {
-        [Op.like]: `%${nama}%`,
+      // Mencari nama di tabel User menggunakan LIKE
+      userWhereClause.nama = {
+        [Op.like]: `%${nama}%`
       };
     }
 
-    const records = await Presensi.findAll(options);
+    // 3. Eksekusi Query dengan Relation (Include)
+    const records = await Presensi.findAll({
+      where: whereClause, // Filter tanggal masuk sini
+      include: [
+        {
+          model: User,
+          as: 'user', // PENTING: Harus sama dengan alias di models/presensi.js
+          where: userWhereClause, // Filter nama masuk sini
+          attributes: ['nama', 'email'] // Ambil kolom yang perlu saja
+        }
+      ],
+      order: [['checkIn', 'DESC']] // Urutkan dari yang terbaru
+    });
 
     res.json({
-      reportDate: date,
+      message: "Data laporan berhasil diambil",
       count: records.length,
-      data: records,
+      data: records, // Frontend mengharapkan array ini
     });
+
   } catch (error) {
+    console.error(error);
     res.status(500).json({
       message: "Gagal mengambil laporan harian",
       error: error.message,

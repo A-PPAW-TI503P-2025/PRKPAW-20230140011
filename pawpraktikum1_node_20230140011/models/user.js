@@ -2,6 +2,7 @@
 const {
   Model
 } = require('sequelize');
+
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     /**
@@ -10,10 +11,15 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // Definisikan relasi di sini jika ada
-      // Contoh: User.hasMany(models.Presensi, { foreignKey: 'userId' });
+      // === UPDATE DISINI (Requirement 1) ===
+      // Definisikan relasi: User memiliki banyak data Presensi
+      this.hasMany(models.Presensi, { 
+        foreignKey: 'userId',
+        as: 'presensi' // Alias untuk include/join nanti
+      });
     }
   }
+  
   User.init({
     nama: {
       type: DataTypes.STRING,
@@ -43,5 +49,6 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'User',
   });
+  
   return User;
 };

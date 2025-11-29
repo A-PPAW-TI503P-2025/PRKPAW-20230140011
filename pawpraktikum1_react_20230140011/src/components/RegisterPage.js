@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import axios from "axios"; // Gunakan axios agar konsisten
 
 function RegisterPage() {
   const navigate = useNavigate();
@@ -7,20 +8,29 @@ function RegisterPage() {
   const [role, setRole] = useState("mahasiswa");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState(""); // State untuk pesan error
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
 
     try {
-      await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nama, role, email, password }),
+      // Gunakan URL lengkap backend (port 3001) & Axios
+      await axios.post("http://localhost:3001/api/auth/register", {
+        nama,
+        role,
+        email,
+        password,
       });
 
+      alert("Registrasi berhasil! Silakan login.");
       navigate("/login");
-    } catch (error) {
-      alert("Gagal register!");
+    } catch (err) {
+      // Tampilkan pesan error dari backend jika ada
+      const errorMessage = err.response && err.response.data && err.response.data.message
+        ? err.response.data.message
+        : "Gagal register! Coba lagi.";
+      setError(errorMessage);
     }
   };
 
@@ -37,12 +47,19 @@ function RegisterPage() {
           Register
         </h1>
 
+        {/* Menampilkan Error jika ada */}
+        {error && (
+          <div className="bg-red-100 text-red-700 p-2 rounded mb-4 text-center text-sm font-semibold">
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="font-semibold text-pink-700">Nama</label>
             <input
               type="text"
-              className="w-full p-3 border-2 border-pink-300 rounded-xl mt-1"
+              className="w-full p-3 border-2 border-pink-300 rounded-xl mt-1 focus:outline-none focus:border-pink-500"
               placeholder="Masukkan nama..."
               value={nama}
               onChange={(e) => setNama(e.target.value)}
@@ -54,7 +71,7 @@ function RegisterPage() {
             <label className="font-semibold text-pink-700">Email</label>
             <input
               type="email"
-              className="w-full p-3 border-2 border-pink-300 rounded-xl mt-1"
+              className="w-full p-3 border-2 border-pink-300 rounded-xl mt-1 focus:outline-none focus:border-pink-500"
               placeholder="Masukkan email..."
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -66,7 +83,7 @@ function RegisterPage() {
             <label className="font-semibold text-pink-700">Password</label>
             <input
               type="password"
-              className="w-full p-3 border-2 border-pink-300 rounded-xl mt-1"
+              className="w-full p-3 border-2 border-pink-300 rounded-xl mt-1 focus:outline-none focus:border-pink-500"
               placeholder="Masukkan password..."
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -77,7 +94,7 @@ function RegisterPage() {
           <div className="mb-6">
             <label className="font-semibold text-pink-700">Role</label>
             <select
-              className="w-full p-3 border-2 border-pink-300 rounded-xl mt-1"
+              className="w-full p-3 border-2 border-pink-300 rounded-xl mt-1 focus:outline-none focus:border-pink-500"
               value={role}
               onChange={(e) => setRole(e.target.value)}
             >
@@ -88,7 +105,7 @@ function RegisterPage() {
 
           <button
             type="submit"
-            className="w-full py-3 bg-pink-400 hover:bg-pink-500 text-white font-bold rounded-xl"
+            className="w-full py-3 bg-pink-400 hover:bg-pink-500 text-white font-bold rounded-xl transition duration-200"
           >
             Register
           </button>
@@ -96,7 +113,7 @@ function RegisterPage() {
 
         <p className="text-center mt-4 text-pink-700 font-semibold">
           Sudah punya akun?{" "}
-          <Link to="/login" className="text-blue-700 font-bold underline">
+          <Link to="/login" className="text-blue-700 font-bold underline hover:text-blue-900">
             Login
           </Link>
         </p>
