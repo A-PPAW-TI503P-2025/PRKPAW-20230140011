@@ -12,6 +12,7 @@ const presensiRoutes = require("./routes/presensi");
 const reportRoutes = require("./routes/reports");
 const authRoutes = require('./routes/auth');
 const ruteBuku = require("./routes/books");
+const path = require('path'); 
 
 // Middleware
 app.use(cors());
@@ -34,6 +35,7 @@ app.use("/api/books", ruteBuku);
 app.use("/api/presensi", presensiRoutes);
 app.use("/api/reports", reportRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // === 2. SINKRONISASI DATABASE (WAJIB) ===
 // Ini yang bikin tabel otomatis kalau belum ada

@@ -88,62 +88,99 @@ function ReportPage() {
       {!error && (
         <div className="bg-white shadow-md rounded-lg overflow-x-auto"> {/* Tambah overflow-x-auto biar bisa scroll samping */}
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waktu Masuk</th>
-                {/* TAMBAHAN KOLOM LOKASI */}
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lokasi (Lat, Lng)</th> 
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waktu Keluar</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {loading ? (
-                 <tr><td colSpan="5" className="px-6 py-4 text-center text-gray-500">Sedang mengambil data...</td></tr>
-              ) : reports.length > 0 ? (
-                reports.map((presensi) => (
-                  <tr key={presensi.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {presensi.user ? presensi.user.nama : "User Terhapus"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(presensi.checkIn).toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })}
-                    </td>
-                    
-                    {/* MENAMPILKAN DATA LOKASI */}
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {presensi.latitude && presensi.longitude ? (
-                        <a 
-                          href={`https://www.google.com/maps?q=${presensi.latitude},${presensi.longitude}`} 
-                          target="_blank" 
-                          rel="noreferrer"
-                          className="text-blue-600 hover:underline"
-                        >
-                          {presensi.latitude}, {presensi.longitude} ↗
-                        </a>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </td>
+  <thead className="bg-gray-50">
+    <tr>
+      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
+      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waktu Masuk</th>
+      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lokasi (Lat, Lng)</th>
+      
+      {/* ➕ FOTO PRESENSI */}
+      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bukti Foto</th>
 
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {presensi.checkOut ? new Date(presensi.checkOut).toLocaleString("id-ID", { timeZone: "Asia/Jakarta" }) : "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        {presensi.checkOut ? (
-                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Selesai</span>
-                        ) : (
-                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Aktif</span>
-                        )}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr><td colSpan="5" className="px-6 py-10 text-center text-gray-500">Tidak ada data.</td></tr>
-              )}
-            </tbody>
-          </table>
+      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waktu Keluar</th>
+      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+    </tr>
+  </thead>
+  
+  <tbody className="bg-white divide-y divide-gray-200">
+    {reports.map((presensi) => (
+      <tr key={presensi.id} className="hover:bg-gray-50">
+
+        {/* Nama */}
+        <td className="px-6 py-4 text-sm font-medium text-gray-900">
+          {presensi.user ? presensi.user.nama : "User Terhapus"}
+        </td>
+
+        {/* Waktu Masuk */}
+        <td className="px-6 py-4 text-sm text-gray-500">
+          {new Date(presensi.checkIn).toLocaleString("id-ID")}
+        </td>
+
+        {/* Lokasi */}
+        <td className="px-6 py-4 text-sm text-gray-500">
+          {presensi.latitude && presensi.longitude ? (
+            <a 
+              href={`https://www.google.com/maps?q=${presensi.latitude},${presensi.longitude}`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-blue-600 hover:underline"
+            >
+              {presensi.latitude}, {presensi.longitude} ↗
+            </a>
+          ) : (
+            "-"
+          )}
+        </td>
+
+        {/* FOTO PRESENSI */}
+        {/* --- KODE BARU (Menggunakan buktiFoto) --- */}
+<td className="px-6 py-4 text-sm text-gray-500">
+  {presensi.buktiFoto ? (
+    <a 
+      // GANTI imageUrl JADI buktiFoto
+      // Logika: Tambahkan http://localhost:3001/ di depannya
+      href={`http://localhost:3001/${presensi.buktiFoto.replace(/\\/g, "/")}`} 
+      target="_blank" 
+      rel="noreferrer"
+    >
+      <img 
+        // GANTI imageUrl JADI buktiFoto
+        src={`http://localhost:3001/${presensi.buktiFoto.replace(/\\/g, "/")}`} 
+        alt="Foto Presensi"
+        className="w-12 h-12 rounded-md object-cover border"
+        onError={(e) => { 
+          e.target.onerror = null; 
+          e.target.src = "https://via.placeholder.com/150?text=No+Img"; 
+        }}
+      />
+    </a>
+  ) : (
+    <span className="text-gray-400">Tidak ada foto</span>
+  )}
+</td>
+
+        {/* Waktu Keluar */}
+        <td className="px-6 py-4 text-sm text-gray-500">
+          {presensi.checkOut ? new Date(presensi.checkOut).toLocaleString("id-ID") : "-"}
+        </td>
+
+        {/* Status */}
+        <td className="px-6 py-4 text-sm">
+          {presensi.checkOut ? (
+            <span className="px-2 inline-flex text-xs font-semibold rounded-full bg-green-100 text-green-800">
+              Selesai
+            </span>
+          ) : (
+            <span className="px-2 inline-flex text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+              Aktif
+            </span>
+          )}
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
         </div>
       )}
     </div>

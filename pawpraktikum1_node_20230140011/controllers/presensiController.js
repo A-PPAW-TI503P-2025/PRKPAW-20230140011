@@ -1,19 +1,49 @@
 const { Presensi } = require("../models");
 const { format } = require("date-fns-tz");
+const multer = require("multer");
+const path = require("path");
+
 const timeZone = "Asia/Jakarta";
 
-// ... (kode import lainnya)
+/* ============================================
+   MULTER SETUP UNTUK UPLOAD FOTO CHECK-IN
+============================================ */
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+  cb(null, `${req.user.id}-${Date.now()}.jpg`);
+},
 
+});
+
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith("image/")) {
+    cb(null, true);
+  } else {
+    cb(new Error("Hanya file gambar yang diperbolehkan!"), false);
+  }
+};
+
+exports.upload = multer({ storage, fileFilter });
+
+/* ============================================
+   CHECK-IN
+============================================ */
 exports.CheckIn = async (req, res) => {
   try {
     const { id: userId, nama: userName } = req.user;
-    // === AMBIL DATA LOKASI DARI BODY ===
-    const { latitude, longitude } = req.body; 
-    
+    const { latitude, longitude } = req.body;
+
     const waktuSekarang = new Date();
 
+    // Foto bukti check-in
+    const buktiFoto = req.file ? req.file.path : null;
+
+    // Cek apakah ada check-in aktif (tanpa checkout)
     const existingRecord = await Presensi.findOne({
-      where: { userId: userId, checkOut: null },
+      where: { userId, checkOut: null },
     });
 
     if (existingRecord) {
@@ -22,40 +52,48 @@ exports.CheckIn = async (req, res) => {
         .json({ message: "Anda sudah melakukan check-in hari ini." });
     }
 
-    // === SIMPAN KOORDINAT KE DATABASE ===
+    // Buat data baru
     const newRecord = await Presensi.create({
-      userId: userId,
+      userId,
       checkIn: waktuSekarang,
-      latitude: latitude,   // Simpan Latitude
-      longitude: longitude  // Simpan Longitude
+      latitude,
+      longitude,
+      buktiFoto, // simpan foto
     });
 
     const formattedData = {
       userId: newRecord.userId,
       nama: userName,
-      checkIn: format(newRecord.checkIn, "yyyy-MM-dd HH:mm:ssXXX", { timeZone }),
+      checkIn: format(newRecord.checkIn, "yyyy-MM-dd HH:mm:ssXXX", {
+        timeZone,
+      }),
       latitude: newRecord.latitude,
       longitude: newRecord.longitude,
+      buktiFoto: newRecord.buktiFoto,
       checkOut: null,
     };
 
     res.status(201).json({
-      message: `Halo ${userName}, check-in berhasil!`, // Pesan saya persingkat biar rapi
+      message: `Halo ${userName}, check-in berhasil!`,
       data: formattedData,
     });
   } catch (error) {
-    res.status(500).json({ message: "Terjadi kesalahan pada server", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Terjadi kesalahan pada server", error: error.message });
   }
 };
 
+/* ============================================
+   CHECK-OUT
+============================================ */
 exports.CheckOut = async (req, res) => {
   try {
     const { id: userId, nama: userName } = req.user;
     const waktuSekarang = new Date();
 
-    // Cari data user yang checkOut-nya masih null
     const recordToUpdate = await Presensi.findOne({
-      where: { userId: userId, checkOut: null },
+      where: { userId, checkOut: null },
     });
 
     if (!recordToUpdate) {
@@ -64,13 +102,12 @@ exports.CheckOut = async (req, res) => {
       });
     }
 
-    // Update waktu keluar
     recordToUpdate.checkOut = waktuSekarang;
     await recordToUpdate.save();
 
     const formattedData = {
       userId: recordToUpdate.userId,
-      nama: userName, // Ambil dari token, karena di table Presensi sudah tidak ada nama
+      nama: userName,
       checkIn: format(recordToUpdate.checkIn, "yyyy-MM-dd HH:mm:ssXXX", {
         timeZone,
       }),
@@ -88,16 +125,21 @@ exports.CheckOut = async (req, res) => {
       data: formattedData,
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Terjadi kesalahan pada server", error: error.message });
+    res.status(500).json({
+      message: "Terjadi kesalahan pada server",
+      error: error.message,
+    });
   }
 };
 
+/* ============================================
+   DELETE PRESENSI
+============================================ */
 exports.deletePresensi = async (req, res) => {
   try {
     const { id: userId } = req.user;
     const presensiId = req.params.id;
+
     const recordToDelete = await Presensi.findByPk(presensiId);
 
     if (!recordToDelete) {
@@ -105,9 +147,7 @@ exports.deletePresensi = async (req, res) => {
         .status(404)
         .json({ message: "Catatan presensi tidak ditemukan." });
     }
-    
-    // Pastikan user hanya bisa menghapus data miliknya sendiri (kecuali admin)
-    // Jika ingin admin bisa hapus semua, tambahkan logika cek role di sini
+
     if (recordToDelete.userId !== userId) {
       return res
         .status(403)
@@ -123,11 +163,12 @@ exports.deletePresensi = async (req, res) => {
   }
 };
 
+/* ============================================
+   UPDATE PRESENSI
+============================================ */
 exports.updatePresensi = async (req, res) => {
   try {
     const presensiId = req.params.id;
-    // === PERUBAHAN DI SINI ===
-    // Hapus 'nama' dari destructuring karena tidak boleh diupdate lewat tabel presensi
     const { checkIn, checkOut } = req.body;
 
     if (checkIn === undefined && checkOut === undefined) {
@@ -146,8 +187,6 @@ exports.updatePresensi = async (req, res) => {
 
     recordToUpdate.checkIn = checkIn || recordToUpdate.checkIn;
     recordToUpdate.checkOut = checkOut || recordToUpdate.checkOut;
-    
-    // recordToUpdate.nama = nama; <--- BARIS INI DIHAPUS
 
     await recordToUpdate.save();
 
