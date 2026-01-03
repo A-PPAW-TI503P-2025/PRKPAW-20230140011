@@ -7,6 +7,7 @@ import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import DashboardPage from './components/DashboardPage'; // Jika masih dipakai
 import PresensiPage from './components/PresensiPage';
+import SensorPage from './components/SensorPage';
 import Navbar from './components/Navbar';
 import ReportPage from './components/ReportPage';
 
@@ -67,6 +68,15 @@ function App() {
               </PrivateRoute>
             } 
           />
+
+          <Route
+          path="/monitoring"
+          element={
+            <PrivateRoute>
+              <SensorPage />
+            </PrivateRoute>
+          }
+        />
 
           {/* Halaman Dashboard (Opsional, jika masih dipakai) */}
           <Route 

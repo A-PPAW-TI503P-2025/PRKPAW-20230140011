@@ -70,6 +70,14 @@ const Navbar = () => {
                 Dashboard
               </Link>
 
+              <Link 
+                to="/monitoring" 
+                className="text-gray-600 hover:text-green-600 hover:bg-green-50 px-3 py-2 rounded-md font-bold transition"
+              >
+              Monitoring Suhu
+              </Link>
+
+
               {/* Menu Admin (Hanya Admin) */}
               {user && user.role === 'admin' && (
                 <Link 
