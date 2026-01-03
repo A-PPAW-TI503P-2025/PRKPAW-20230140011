@@ -13,6 +13,7 @@ const reportRoutes = require("./routes/reports");
 const authRoutes = require('./routes/auth');
 const ruteBuku = require("./routes/books");
 const path = require('path'); 
+const iotRoutes = require("./routes/iot");
 
 // Middleware
 app.use(cors());
@@ -36,6 +37,7 @@ app.use("/api/presensi", presensiRoutes);
 app.use("/api/reports", reportRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use("/api/iot", iotRoutes);
 
 // === 2. SINKRONISASI DATABASE (WAJIB) ===
 // Ini yang bikin tabel otomatis kalau belum ada
